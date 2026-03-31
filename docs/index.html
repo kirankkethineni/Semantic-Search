@@ -301,17 +301,10 @@
       Semantic-Search is a <strong>knowledge-driven classification system</strong> that integrates three components working in sequence:
     </p>
 
-    <div class="pipeline">
-      <div class="pipe-step"><span class="icon">🖼️</span>Leaf Image</div>
-      <div class="pipe-arrow">→</div>
-      <div class="pipe-step"><span class="icon">🧠</span>CNN<br><small>(Object Detection)</small></div>
-      <div class="pipe-arrow">→</div>
-      <div class="pipe-step"><span class="icon">💬</span>NLP<br><small>(Semantic Understanding)</small></div>
-      <div class="pipe-arrow">→</div>
-      <div class="pipe-step"><span class="icon">🗃️</span>Knowledge Base<br><small>(Database Query)</small></div>
-      <div class="pipe-arrow">→</div>
-      <div class="pipe-step"><span class="icon">🏷️</span>Disease Label</div>
-    </div>
+    <figure>
+      <img src="images/proposed_approach.png" alt="Knowledge-Driven Classification: Semantic Search pipeline" style="max-width:100%; border:none; box-shadow:none;" />
+      <figcaption>Fig. 2: Proposed Semantic-Search (Knowledge-Driven Approach) — showing the top-level pipeline (Image → CNN → NLP → Knowledge Base → Label) and the two pathways: <em>Learning</em> via text input and <em>Inference</em> via image query.</figcaption>
+    </figure>
 
     <h3>Two Pathways</h3>
     <p><strong>Learning:</strong> To add a new disease class, a user simply provides a text description (e.g., <em>"Apple crops affected by cedar rust disease have spots with brown, yellow colors"</em>). The NLP/NER model extracts the plant name, disease name, semantics, and colors, then inserts them into the database — no image labeling or model retraining needed.</p>
