@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Semantic-Search: Knowledge-Driven Plant Disease Classification</title>
+  <style>
+    :root {
+      --green: #2e7d32;
+      --green-light: #4caf50;
+      --green-pale: #e8f5e9;
+      --dark: #1a1a1a;
+      --gray: #555;
+      --border: #ddd;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; color: var(--dark); background: #fff; line-height: 1.7; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%);
+      color: #fff;
+      padding: 60px 20px 50px;
+      text-align: center;
+    }
+    header .venue {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.25;
+      max-width: 900px;
+      margin: 0 auto 24px;
+    }
+    .authors {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+    .authors a { color: #a5d6a7; text-decoration: none; }
+    .authors a:hover { text-decoration: underline; }
+    .affiliation {
+      font-size: 0.9rem;
+      color: #c8e6c9;
+      margin-bottom: 28px;
+    }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.5);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: background 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .btn:hover { background: rgba(255,255,255,0.25); }
+    .btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* ── Layout ── */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── Sections ── */
+    section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: none; }
+    h2 {
+      font-size: 1.55rem;
+      color: var(--green);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--green-pale);
+    }
+    h3 { font-size: 1.1rem; color: var(--dark); margin: 20px 0 8px; }
+    p { margin-bottom: 14px; color: #333; }
+
+    /* ── Abstract ── */
+    .abstract-box {
+      background: var(--green-pale);
+      border-left: 4px solid var(--green);
+      padding: 24px 28px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.97rem;
+    }
+
+    /* ── Stats ── */
+    .stats { display: flex; flex-wrap: wrap; gap: 16px; margin: 28px 0; }
+    .stat {
+      flex: 1; min-width: 140px;
+      background: var(--green-pale);
+      border: 1px solid #c8e6c9;
+      border-radius: 10px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .stat .num { font-size: 2rem; font-weight: 700; color: var(--green); font-family: 'Segoe UI', sans-serif; }
+    .stat .lbl { font-size: 0.82rem; color: var(--gray); margin-top: 4px; }
+
+    /* ── Pipeline ── */
+    .pipeline {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0;
+      justify-content: center; margin: 28px 0;
+    }
+    .pipe-step {
+      background: var(--green);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-family: 'Segoe UI', sans-serif;
+      min-width: 120px;
+    }
+    .pipe-step .icon { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+    .pipe-arrow {
+      font-size: 1.5rem; color: var(--green); padding: 0 8px; font-weight: bold;
+    }
+    @media (max-width: 600px) { .pipe-arrow { transform: rotate(90deg); } }
+
+    /* ── Figures ── */
+    figure {
+      margin: 28px 0;
+      text-align: center;
+    }
+    figure img {
+      max-width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    figcaption {
+      margin-top: 10px;
+      font-size: 0.88rem;
+      color: var(--gray);
+      font-style: italic;
+    }
+
+    /* ── Two-col figures ── */
+    .fig-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 28px 0; }
+
+    /* ── Comparison table ── */
+    .table-wrap { overflow-x: auto; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; font-family: 'Segoe UI', sans-serif; }
+    th { background: var(--green); color: #fff; padding: 10px 12px; text-align: left; }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    tr:nth-child(even) td { background: var(--green-pale); }
+    tr.highlight td { font-weight: 700; background: #c8e6c9 !important; }
+
+    /* ── Contributions ── */
+    .contrib-list { list-style: none; margin: 16px 0; }
+    .contrib-list li {
+      display: flex; gap: 14px; align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .contrib-num {
+      background: var(--green);
+      color: #fff;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      font-family: 'Segoe UI', sans-serif;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── Semantics table ── */
+    .semantics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+    .sem-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fafafa;
+    }
+    .sem-card .plant { font-weight: 700; color: var(--green); font-size: 0.9rem; }
+    .sem-card .disease { font-size: 0.88rem; color: var(--dark); margin: 2px 0; }
+    .sem-card .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .tag {
+      background: var(--green-pale);
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      padding: 2px 9px;
+      font-size: 0.75rem;
+      color: var(--green);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* ── Citation ── */
+    .citation-box {
+      background: #f5f5f5;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #333;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: #1b5e20;
+      color: #c8e6c9;
+      text-align: center;
+      padding: 28px 20px;
+      font-size: 0.85rem;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    footer a { color: #a5d6a7; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="venue">IEEE Transactions on AgriFood Electronics (TAFE) · 2025</div>
+  <h1>Semantic-Search: A Knowledge-Driven Classification Method for Accurate Identification of Plant Diseases</h1>
+  <p class="authors">
+    <a href="mailto:kirankumar.kethineni@unt.edu">Kiran K. Kethineni</a><sup>*</sup> &nbsp;&middot;&nbsp;
+    <a href="mailto:saraju.mohanty@unt.edu">Saraju P. Mohanty</a><sup>*</sup> &nbsp;&middot;&nbsp;
+    <a href="mailto:elias.kougianos@unt.edu">Elias Kougianos</a><sup>†</sup>
+  </p>
+  <p class="affiliation">
+    <sup>*</sup>Dept. of Computer Science &amp; Engineering &nbsp;·&nbsp;
+    <sup>†</sup>Dept. of Electrical Engineering<br>
+    University of North Texas, Denton, TX, USA
+  </p>
+  <div class="btn-row">
+    <a class="btn" href="https://github.com/kirankkethineni/Semantic-Search" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.38 7.86 10.9.57.1.78-.25.78-.55v-2c-3.2.7-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.96 10.96 0 012.87-.39c.97 0 1.95.13 2.87.39 2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.13v3.16c0 .31.2.66.79.55C20.71 21.38 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/></svg>
+      Code &amp; Notebooks
+    </a>
+    <a class="btn" href="#results">
+      <svg viewBox="0 0 24 24"><path d="M3 3h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h12v2H3zm0 4h18v2H3z"/></svg>
+      Results
+    </a>
+    <a class="btn" href="#citation">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
+      Citation
+    </a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ═══════════════════════════════════════════════ ABSTRACT -->
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <div class="abstract-box">
+      As the global population is increasing and agricultural resources are diminishing, effective management of plant diseases becomes critical. CNN-based models have been widely adopted in Agriculture Cyber-Physical Systems (A-CPS) due to their high accuracy. However, these models require large, labeled datasets for training, limiting their practicality in plant disease detection where data is heterogeneous, scarce, and subjected to continual evolution.
+      <br><br>
+      To address these challenges, we propose <strong>Semantic-Search</strong>, a knowledge-driven system that interprets plant diseases based on high-level semantic features like visual patterns, colors, and crop type, rather than relying solely on low-level image features. The system classifies diseases by querying a structured knowledge base using these semantics — enabling greater adaptability, interpretability, and robustness to intra-class variability.
+      <br><br>
+      The system can incorporate new disease classes through simple knowledge base updates, eliminating the need for retraining. We validated our approach on a dataset of <strong>11,000 images</strong> encompassing <strong>21 diseases</strong> across <strong>11 plant species</strong>, achieving an accuracy of <strong>90%</strong>, demonstrating its effectiveness and scalability.
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">90%</div><div class="lbl">Overall Accuracy</div></div>
+      <div class="stat"><div class="num">11,000</div><div class="lbl">Images Tested</div></div>
+      <div class="stat"><div class="num">21</div><div class="lbl">Disease Classes</div></div>
+      <div class="stat"><div class="num">11</div><div class="lbl">Plant Species</div></div>
+      <div class="stat"><div class="num">98%</div><div class="lbl">NER F1 Score</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Retraining Needed</div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ MOTIVATION -->
+  <section id="motivation">
+    <h2>Motivation &amp; Problem</h2>
+    <p>
+      All CNN-based classification models consist of two primary components: a feature extractor and a classifier. These models are <em>data-driven</em> — trained using large labeled datasets to learn the most effective features and classification rules. This has a critical limitation:
+    </p>
+    <ul style="margin: 12px 0 12px 24px; color:#333;">
+      <li>Adding a new disease class requires a <strong>large number of labeled images</strong> and full retraining.</li>
+      <li>In agriculture, data is <strong>heterogeneous, scarce, and continually evolving</strong>.</li>
+      <li>Models are not interpretable — they are black boxes with no semantic reasoning.</li>
+    </ul>
+    <p>
+      Semantic-Search overcomes this by mimicking how humans learn: through descriptive text and semantic knowledge — not by processing thousands of images.
+    </p>
+    <figure>
+      <img src="images/semantics_predictions.png" alt="Data-driven vs Knowledge-driven approaches" style="max-width:720px;" />
+      <figcaption>Fig. 1: Semantic features (shape, color, texture) identified by the system on a diseased leaf.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ APPROACH -->
+  <section id="approach">
+    <h2>Proposed Approach</h2>
+    <p>
+      Semantic-Search is a <strong>knowledge-driven classification system</strong> that integrates three components working in sequence:
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step"><span class="icon">🖼️</span>Leaf Image</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="icon">🧠</span>CNN<br><small>(Object Detection)</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="icon">💬</span>NLP<br><small>(Semantic Understanding)</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="icon">🗃️</span>Knowledge Base<br><small>(Database Query)</small></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="icon">🏷️</span>Disease Label</div>
+    </div>
+
+    <h3>Two Pathways</h3>
+    <p><strong>Learning:</strong> To add a new disease class, a user simply provides a text description (e.g., <em>"Apple crops affected by cedar rust disease have spots with brown, yellow colors"</em>). The NLP/NER model extracts the plant name, disease name, semantics, and colors, then inserts them into the database — no image labeling or model retraining needed.</p>
+    <p><strong>Inference:</strong> Given a diseased leaf image, the CNN classification model identifies semantic features (spots, stripes, patches). If localization is needed, a segmentation model isolates the diseased region. HSV color filters then extract the dominant colors. The extracted semantics and colors are used to query the knowledge base using Weighted Jaccard similarity to retrieve the best-matching disease.</p>
+
+    <h3>Knowledge Representation</h3>
+    <p>Each plant disease is represented as a combination of a <strong>semantic feature</strong> (shape/texture) and a set of <strong>colors</strong>. 120 plant diseases were analyzed to define these semantics:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Semantics</th><th>Instances</th></tr></thead>
+        <tbody>
+          <tr><td>Shape</td><td>Spot, Lesions, Patches, Flecks, Curls, Stripes</td></tr>
+          <tr><td>Color</td><td>Yellow, Black, Brown, White, Red, Gray, Pink</td></tr>
+          <tr><td>Texture</td><td>Powdery, Mosaic, Velvety</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="semantics-grid">
+      <div class="sem-card">
+        <div class="plant">Apple</div>
+        <div class="disease">Cedar Rust</div>
+        <div class="tags"><span class="tag">Patches</span><span class="tag">Brown</span><span class="tag">Red</span><span class="tag">Yellow</span><span class="tag">Orange</span></div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">Apple</div>
+        <div class="disease">Powdery Mildew</div>
+        <div class="tags"><span class="tag">Velvety</span><span class="tag">White</span></div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">Corn</div>
+        <div class="disease">Rust</div>
+        <div class="tags"><span class="tag">Flecks</span><span class="tag">Brown</span></div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">Grape</div>
+        <div class="disease">Rot</div>
+        <div class="tags"><span class="tag">Lesions</span><span class="tag">Brown</span><span class="tag">Black</span></div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">Tomato</div>
+        <div class="disease">Black Mold</div>
+        <div class="tags"><span class="tag">Lesions</span><span class="tag">Black</span><span class="tag">Brown</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ NOVELTY -->
+  <section id="novelty">
+    <h2>Novel Contributions</h2>
+    <ul class="contrib-list">
+      <li>
+        <div class="contrib-num">1</div>
+        <div><strong>Semantic Understanding:</strong> Identifies patterns and objects within the diseased area along with their semantic description, rather than rigidly coupling the model to specific low-level pixel features of individual diseases.</div>
+      </li>
+      <li>
+        <div class="contrib-num">2</div>
+        <div><strong>Knowledge-Driven Approach:</strong> Classification leverages a knowledge-based system, allowing the addition or removal of disease classes through simple text inputs and database updates — eliminating the need for retraining.</div>
+      </li>
+      <li>
+        <div class="contrib-num">3</div>
+        <div><strong>Interpretability &amp; Explainability:</strong> Provides users with a description of the identified semantics, offering a transparent explanation for the classification decision, unlike black-box CNN methods.</div>
+      </li>
+      <li>
+        <div class="contrib-num">4</div>
+        <div><strong>Scalability:</strong> The knowledge update mechanism is simple and efficient — adding a new disease class requires only a text input and a database update, making it easy to scale to a larger number of diseases without extensive computational resources.</div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ DEMO / UI -->
+  <section id="demo">
+    <h2>System UI</h2>
+    <p>The Semantic-Search system is deployed as a web application with three core pages:</p>
+
+    <figure>
+      <img src="images/homepage.png" alt="Semantic-Search Home Page" style="max-width:600px;" />
+      <figcaption>Fig. 2: <em>Home</em> page — lists all known diseases and provides access to classification and disease-addition workflows.</figcaption>
+    </figure>
+
+    <div class="fig-grid">
+      <figure>
+        <img src="images/add_disease.png" alt="Add New Disease Page" />
+        <figcaption>Fig. 3: <em>Add Disease</em> page — user provides a natural language description; the system extracts entities via NER.</figcaption>
+      </figure>
+      <figure>
+        <img src="images/add_disease_ner.png" alt="NER Confirmation Page" />
+        <figcaption>Fig. 4: <em>Confirm</em> page — extracted entities (plant, disease, semantics, colors) are presented for user review before saving.</figcaption>
+      </figure>
+    </div>
+
+    <figure>
+      <img src="images/all_diseases.png" alt="Disease List" style="max-width:640px;" />
+      <figcaption>Fig. 5: Home screen showing the list of diseases added to the knowledge base.</figcaption>
+    </figure>
+
+    <h3>Classify a Leaf</h3>
+    <p>Users select a crop type, upload an image of a diseased leaf, and the system returns the predicted disease along with the identified semantics and colors.</p>
+
+    <div class="fig-grid">
+      <figure>
+        <img src="images/classify_output1.png" alt="Classification Output - Example 1" />
+        <figcaption>Classification result — Example 1</figcaption>
+      </figure>
+      <figure>
+        <img src="images/classify_output2.png" alt="Classification Output - Example 2" />
+        <figcaption>Classification result — Example 2</figcaption>
+      </figure>
+      <figure>
+        <img src="images/classify_output3.png" alt="Classification Output - Example 3" />
+        <figcaption>Classification result — Example 3</figcaption>
+      </figure>
+      <figure>
+        <img src="images/classify_output4.png" alt="Classification Output - Example 4" />
+        <figcaption>Classification result — Example 4</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ RESULTS -->
+  <section id="results">
+    <h2>Experimental Results</h2>
+    <p>The system was validated on <strong>11,000 images</strong> covering 21 diseases across 11 plant species from the PlantVillage and PlantDoc datasets.</p>
+
+    <figure>
+      <img src="images/classification_metrics.png" alt="Classification Metrics" style="max-width:680px;" />
+      <figcaption>Fig. 6: Per-class F1 score, accuracy, precision, and recall for the CNN semantic classification model.</figcaption>
+    </figure>
+
+    <figure>
+      <img src="images/result.png" alt="Confusion Matrix" style="max-width:680px;" />
+      <figcaption>Fig. 7: Confusion matrix of the developed Semantic-Search system across all 21 disease classes.</figcaption>
+    </figure>
+
+    <h3>Per-Class Metrics (Selected)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Disease</th><th>Accuracy</th><th>F1 Score</th><th>Precision</th><th>Recall</th></tr></thead>
+        <tbody>
+          <tr><td>Apple Black Rot</td><td>81.62</td><td>85.96</td><td>90.80</td><td>81.62</td></tr>
+          <tr><td>Apple Cedar Rust</td><td>81.04</td><td>72.31</td><td>65.27</td><td>81.04</td></tr>
+          <tr><td>Cherry Mildew</td><td>91.67</td><td>95.65</td><td>100</td><td>91.67</td></tr>
+          <tr><td>Corn Blight</td><td>99.40</td><td>86.43</td><td>76.46</td><td>99.40</td></tr>
+          <tr><td>Corn Rust</td><td>100</td><td>99.67</td><td>99.34</td><td>100</td></tr>
+          <tr><td>Grape Blight</td><td>85.40</td><td>74.52</td><td>72.52</td><td>85.40</td></tr>
+          <tr><td>Orange Citrus Bacterial Spot</td><td>100</td><td>100</td><td>100</td><td>100</td></tr>
+          <tr><td>Potato Blight</td><td>99.60</td><td>99.79</td><td>100</td><td>99.60</td></tr>
+          <tr><td>Tomato Blight</td><td>91.93</td><td>78.65</td><td>68.73</td><td>91.93</td></tr>
+          <tr><td>Tomato Mosaic Virus</td><td>100</td><td>99.01</td><td>98.04</td><td>100</td></tr>
+          <tr class="highlight"><td><strong>Average</strong></td><td><strong>90</strong></td><td><strong>91</strong></td><td><strong>93</strong></td><td><strong>90</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Comparison with Existing Methods</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th>Semantic Understanding</th><th>Retraining Needed</th><th>Scalability</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>CNN-based models</td><td>Limited (pixel-level)</td><td>Yes</td><td>Low</td><td>97%</td></tr>
+          <tr><td>Histogram-based (SVM)</td><td>No</td><td>Yes</td><td>Low</td><td>80%</td></tr>
+          <tr><td>Bag of Visual Words</td><td>No</td><td>Yes</td><td>Low</td><td>82%</td></tr>
+          <tr><td>Knowledge Graph methods</td><td>Yes</td><td>No (complex graph)</td><td>Moderate</td><td>83%</td></tr>
+          <tr class="highlight"><td><strong>Semantic-Search (Ours)</strong></td><td><strong>Yes (Object + Color + NLP)</strong></td><td><strong>No (DB update only)</strong></td><td><strong>High</strong></td><td><strong>90%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.88rem; color:var(--gray);">
+      Semantic-Search achieves <strong>90% accuracy</strong> with <em>no retraining</em> required for new classes, and with classification times as low as <strong>132 ms</strong> on an NVIDIA L4 GPU.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ CODE -->
+  <section id="code">
+    <h2>Code &amp; Notebooks</h2>
+    <p>The repository contains Jupyter notebooks implementing the three main components of the Semantic-Search pipeline:</p>
+    <div class="semantics-grid">
+      <div class="sem-card">
+        <div class="plant">Semantic_Classification.ipynb</div>
+        <div class="disease" style="margin-top:6px; font-size:0.85rem; color:#555;">CNN-based semantic classification model (87,207 parameters). Trained on 7,000 images to identify shape/texture semantics (spots, stripes, patches, etc.).</div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">Semantic_Segmentation.ipynb</div>
+        <div class="disease" style="margin-top:6px; font-size:0.85rem; color:#555;">Fully convolutional segmentation model (1.45M parameters). Localizes diseased regions for precise color extraction using HSV filters.</div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">Spacy.ipynb</div>
+        <div class="disease" style="margin-top:6px; font-size:0.85rem; color:#555;">spaCy NER model training using tok2Vec. Identifies PLANT, DISEASE, COLOR, and SEMANTIC entities from free-text disease descriptions. Achieves 98% F1.</div>
+      </div>
+      <div class="sem-card">
+        <div class="plant">TAFER1.ipynb</div>
+        <div class="disease" style="margin-top:6px; font-size:0.85rem; color:#555;">End-to-end inference pipeline integrating the classification, segmentation, NLP, and database query components.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ CITATION -->
+  <section id="citation">
+    <h2>Citation</h2>
+    <p>If you find this work useful, please cite:</p>
+    <div class="citation-box">@article{kethineni2025semanticsearch,
+  title   = {Semantic-Search: A Knowledge-Driven Classification Method
+             for Accurate Identification of Plant Diseases},
+  author  = {Kethineni, Kiran K. and Mohanty, Saraju P. and Kougianos, Elias},
+  journal = {IEEE Transactions on AgriFood Electronics},
+  year    = {2025},
+  note    = {TAFE-02-0037-2025}
+}</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ ACKNOWLEDGMENT -->
+  <section id="ack">
+    <h2>Acknowledgment</h2>
+    <p>
+      This journal paper is based on a preliminary conference presentation:
+      K. K. Kethineni, S. P. Mohanty, and E. Kougianos, "Semantic-search: A knowledge-driven classification method for plant diseases," in <em>Proc. IEEE 2nd Conference on AgriFood Electronics (CAFE)</em>, 2024, pp. 95–99.
+    </p>
+    <p>
+      Research conducted at the <strong>Smart Electronics Systems Laboratory</strong>, University of North Texas, Denton, TX, USA.
+    </p>
+  </section>
+
+</div><!-- /container -->
+
+<footer>
+  <p>
+    Semantic-Search &middot; IEEE TAFE 2025 &middot;
+    <a href="https://github.com/kirankkethineni/Semantic-Search">GitHub</a> &middot;
+    University of North Texas
+  </p>
+  <p style="margin-top:6px; color:#81c784;">
+    Kiran K. Kethineni &nbsp;&middot;&nbsp; Saraju P. Mohanty &nbsp;&middot;&nbsp; Elias Kougianos
+  </p>
+</footer>
+
+</body>
+</html>
