@@ -6,7 +6,7 @@
 > Department of Computer Science & Engineering / Electrical Engineering  
 > University of North Texas, USA
 
-[Project Page](https://kirankkethineni.github.io/Semantic-Search) · [IEEE Paper](https://ieeexplore.ieee.org) · [GitHub](https://github.com/kirankkethineni/Semantic-Search)
+[Project Page](https://kirankkethineni.github.io/Semantic-Search) · [IEEE Paper](https://ieeexplore.ieee.org/abstract/document/11215855) · [GitHub](https://github.com/kirankkethineni/Semantic-Search)
 
 ---
 
